@@ -88,9 +88,15 @@ select, input[type="range"] {
 
 /*stave area*/
 .stave-center {
-    position: relative; /* Crucial for absolute positioning of playhead and balls */
+    position: relative;
     overflow: hidden;
     background-color: var(--colour-01);
+
+    /* 12 vertical grid lines (11 steps) across X, 16 horizontal lines (15 steps) across Y */
+    background-image:
+            linear-gradient(to right, var(--colour-03) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--colour-03) 1px, transparent 1px);
+    background-size: calc(100% / 11) calc(100% / 15);
 }
 
 #playhead {

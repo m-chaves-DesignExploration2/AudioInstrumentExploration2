@@ -53,11 +53,15 @@ volumeSlider.addEventListener('input', (e) => {
     Tone.Destination.volume.value = parseFloat(e.target.value);
 });
 
-
+//grid snapping and pitch constraints
+//12 semitones in chromatic scale
+//16 beats in the loop
+const pitch_steps = 12;
+const time_steps = 16;
 
 //note spawning on click
 //drag and drop controls for notes
-//track position on the stave using coordinates as ratios???
+//track position on the stave using step increments???
 const staveZone = document.getElementById('staveZone');
 const spawnBtn = document.getElementById('spawnBallBtn');
 const p2Status = document.getElementById('p2-status');
@@ -75,12 +79,17 @@ function createBall(xPercent, yPercent) {
     const ballElement = document.createElement('div');
     ballElement.classList.add('note-ball');
 
+    const xStep = Math.max(0, Math.min(Math.round(xPercent * (pitch_steps - 1)), pitch_steps - 1));
+    const yStep = Math.max(0, Math.min(Math.round(yPercent * (time_steps - 1)), time_steps - 1));
+
     //storing ball coordinates as ratios (0.0 to 1.0)
     const noteObj = {
         element: ballElement,
-        xRatio: xPercent, // Horizontal position = Pitch
-        yRatio: yPercent, // Vertical position = Timing
-        triggered: false  // Used by sequencer loop in Phase 4
+        xStep: xStep, // Integer 0 to 11 (Exact pitch offset)
+        yStep: yStep, // Integer 0 to 15 (Exact time beat)
+        xRatio: xStep / (pitch_steps - 1), // Exact decimal ratio for CSS positioning
+        yRatio: yStep / (time_steps - 1),
+        triggered: false
     };
 
     updateBallDOMPosition(noteObj);
@@ -91,14 +100,14 @@ function createBall(xPercent, yPercent) {
     selectNoteForP2(notes.length - 1);
 
     //play a preview note on creation
-    playPreviewSound(noteObj.xRatio);
+    playPreviewSound(noteObj.xStep);
 
     ballElement.addEventListener('click', (e) => {
         e.stopPropagation();
         const clickedIndex = notes.indexOf(noteObj);
         if (clickedIndex !== -1) {
             selectNoteForP2(clickedIndex);
-            playPreviewSound(noteObj.xRatio);
+            playPreviewSound(noteObj.xStep);
         }
     });
 }
@@ -110,25 +119,22 @@ function updateBallDOMPosition(noteObj) {
 }
 
 //calculate sound frequency using user 2 octave choice and ball x position
-function calculateFrequency(xRatio, octave) {
-    //safe fallbacks if parameters are missing or NaN
+function calculateFrequency(xStep, octave) {
     const safeOctave = octave || 3;
-    const safeX = xRatio || 0.5;
+    const safeStep = (xStep !== undefined && xStep !== null) ? xStep : 0;
 
-    //base frequency per octave (Octave 2 = 110Hz, Octave 3 = 220Hz, etc)
-    const baseHz = 110 * Math.pow(2, safeOctave - 2);
+    const baseMidi = (safeOctave + 1) * 12;
+    const midiNote = baseMidi + safeStep;
 
-    //x position adds pitch variation across the stave
-    const pitchSpread = safeX * (baseHz * 2);
+    return 440 * Math.pow(2, (midiNote - 69) / 12);
 
-    return baseHz + pitchSpread;
 }
 
 //Plays a short pitch preview sound based on horizontal position.
-function playPreviewSound(xRatio) {
+function playPreviewSound(xStep) {
     const pitchOffsetSlider = document.getElementById('pitchOffset');
     const baseOctave = pitchOffsetSlider ? parseInt(pitchOffsetSlider.value, 10) : 3;
-    const previewFreq = calculateFrequency(xRatio, baseOctave);
+    const previewFreq = calculateFrequency(xStep, baseOctave);
     synth.triggerAttackRelease(previewFreq, "16n");
 }
 
@@ -193,7 +199,7 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
-    // SPACEBAR: Cycle selection backwards (wraps around infinitely)
+    // SPACEBAR: Cycle selection backwards infinitely
     if (e.key === " " || e.code === "Space") {
         if (activeP2Index !== -1) {
             let nextIndex = activeP2Index - 1;
@@ -207,29 +213,32 @@ window.addEventListener('keydown', (e) => {
         return;
     }
 
-    // ARROW KEYS: Nudge position of selected note
+    // arrow keys snap ball to grid lines
     if (activeP2Index !== -1) {
         const activeNote = notes[activeP2Index];
-        const step = 0.02;
         let moved = false;
 
         if (e.key === "ArrowUp") {
-            activeNote.yRatio = Math.max(0.05, activeNote.yRatio - step);
+            activeNote.yStep = Math.max(0, activeNote.yStep - 1);
+            activeNote.yRatio = activeNote.yStep / (time_steps - 1);
             moved = true;
         } else if (e.key === "ArrowDown") {
-            activeNote.yRatio = Math.min(0.95, activeNote.yRatio + step);
+            activeNote.yStep = Math.min(time_steps - 1, activeNote.yStep + 1);
+            activeNote.yRatio = activeNote.yStep / (time_steps - 1);
             moved = true;
         } else if (e.key === "ArrowLeft") {
-            activeNote.xRatio = Math.max(0.05, activeNote.xRatio - step);
+            activeNote.xStep = Math.max(0, activeNote.xStep - 1);
+            activeNote.xRatio = activeNote.xStep / (pitch_steps - 1);
             moved = true;
         } else if (e.key === "ArrowRight") {
-            activeNote.xRatio = Math.min(0.95, activeNote.xRatio + step);
+            activeNote.xStep = Math.min(pitch_steps - 1, activeNote.xStep + 1);
+            activeNote.xRatio = activeNote.xStep / (pitch_steps - 1);
             moved = true;
         }
 
         if (moved) {
             updateBallDOMPosition(activeNote);
-            playPreviewSound(activeNote.xRatio);
+            playPreviewSound(activeNote.xStep);
         }
     }
 });
@@ -299,7 +308,7 @@ function animate() {
 
                 try {
                     //calculate pitch and trigger sound
-                    const notePitchHz = calculateFrequency(note.xRatio, baseOctave);
+                    const notePitchHz = calculateFrequency(note.xStep, baseOctave);
                     synth.triggerAttackRelease(notePitchHz, "8n");
 
                     //visual feedback animation on note hit
