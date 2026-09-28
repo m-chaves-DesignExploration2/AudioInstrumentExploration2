@@ -79,16 +79,16 @@ function createBall(xPercent, yPercent) {
     const ballElement = document.createElement('div');
     ballElement.classList.add('note-ball');
 
-    const xStep = Math.max(0, Math.min(Math.round(xPercent * (pitch_steps - 1)), pitch_steps - 1));
-    const yStep = Math.max(0, Math.min(Math.round(yPercent * (time_steps - 1)), time_steps - 1));
+    const xStep = Math.max(0, Math.min(Math.round(xPercent * (time_steps - 1)), time_steps - 1));
+    const yStep = Math.max(0, Math.min(Math.round(yPercent * (pitch_steps - 1)), pitch_steps - 1));
 
     //storing ball coordinates as ratios (0.0 to 1.0)
     const noteObj = {
         element: ballElement,
         xStep: xStep, // Integer 0 to 11 (Exact pitch offset)
         yStep: yStep, // Integer 0 to 15 (Exact time beat)
-        xRatio: xStep / (pitch_steps - 1), // Exact decimal ratio for CSS positioning
-        yRatio: yStep / (time_steps - 1),
+        xRatio: xStep / (time_steps - 1), // Exact decimal ratio for CSS positioning
+        yRatio: yStep / (pitch_steps - 1),
         triggered: false
     };
 
@@ -100,7 +100,7 @@ function createBall(xPercent, yPercent) {
     selectNoteForP2(notes.length - 1);
 
     //play a preview note on creation
-    playPreviewSound(noteObj.xStep);
+    playPreviewSound(pitch_steps - 1 - noteObj.yStep);
 
     ballElement.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -220,25 +220,25 @@ window.addEventListener('keydown', (e) => {
 
         if (e.key === "ArrowUp") {
             activeNote.yStep = Math.max(0, activeNote.yStep - 1);
-            activeNote.yRatio = activeNote.yStep / (time_steps - 1);
+            activeNote.yRatio = activeNote.yStep / (pitch_steps - 1);
             moved = true;
         } else if (e.key === "ArrowDown") {
-            activeNote.yStep = Math.min(time_steps - 1, activeNote.yStep + 1);
-            activeNote.yRatio = activeNote.yStep / (time_steps - 1);
+            activeNote.yStep = Math.min(pitch_steps - 1, activeNote.yStep + 1);
+            activeNote.yRatio = activeNote.yStep / (pitch_steps - 1);
             moved = true;
         } else if (e.key === "ArrowLeft") {
             activeNote.xStep = Math.max(0, activeNote.xStep - 1);
-            activeNote.xRatio = activeNote.xStep / (pitch_steps - 1);
+            activeNote.xRatio = activeNote.xStep / (time_steps - 1);
             moved = true;
         } else if (e.key === "ArrowRight") {
-            activeNote.xStep = Math.min(pitch_steps - 1, activeNote.xStep + 1);
-            activeNote.xRatio = activeNote.xStep / (pitch_steps - 1);
+            activeNote.xStep = Math.min(time_steps - 1, activeNote.xStep + 1);
+            activeNote.xRatio = activeNote.xStep / (time_steps - 1);
             moved = true;
         }
 
         if (moved) {
             updateBallDOMPosition(activeNote);
-            playPreviewSound(activeNote.xStep);
+            playPreviewSound(pitch_steps - 1 - activeNote.yStep);
         }
     }
 });
@@ -247,7 +247,7 @@ window.addEventListener('keydown', (e) => {
 
 
 //play and pause handler for the playhead
-let playheadY = 0;
+let playheadX = 0;
 let isPlaying = false; // Paused by default on startup
 let animationFrameId = null; // Stores the requestAnimationFrame reference
 
@@ -284,15 +284,15 @@ function animate() {
     const bpm = speedInput ? parseFloat(speedInput.value) : 120;
     const stepSpeed = (bpm / 60) * 0.003;
 
-    playheadY += stepSpeed;
+    playheadX += stepSpeed;
 
-    if (playheadY >= 1.0) {
-        playheadY = 0;
+    if (playheadX >= 1.0) {
+        playheadX = 0;
     }
 
     const playhead = document.getElementById('playhead');
     if (playhead) {
-        playhead.style.top = `${playheadY * 100}%`;
+        playhead.style.left = `${playheadX * 100}%`;
     }
 
     // collision detection
@@ -300,15 +300,16 @@ function animate() {
     const baseOctave = pitchOffsetSlider ? parseInt(pitchOffsetSlider.value, 10) : 3;
 
     notes.forEach((note) => {
-        const verticalDistance = Math.abs(playheadY - note.yRatio);
+        const horizontalDistance = Math.abs(playheadX - note.xRatio);
 
-        if (verticalDistance < 0.015) {
+        if (horizontalDistance < 0.015) {
             if (!note.triggered) {
                 note.triggered = true;
 
                 try {
                     //calculate pitch and trigger sound
-                    const notePitchHz = calculateFrequency(note.xStep, baseOctave);
+                    const actualPitchStep = pitch_steps - 1 - note.yStep;
+                    const notePitchHz = calculateFrequency(actualPitchStep, baseOctave);
                     synth.triggerAttackRelease(notePitchHz, "8n");
 
                     //visual feedback animation on note hit

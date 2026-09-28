@@ -63,9 +63,10 @@ header h1 {
 }
 
 /*2 column split container: Player 1 Left (1fr) | Stave Right (2fr)*/
-.app-container {
+.app-container.variation-top-bottom {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr;
     flex: 1;
     height: calc(100vh - 50px);
 }
@@ -80,13 +81,43 @@ header h1 {
     border-right: var(--border-tech);
 }
 
-.player-left {
+.variation-top-bottom .player-panel {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    border-bottom: var(--border-tech);
     box-shadow: inset -5px 0 15px rgba(0, 0, 0, 0.5);
 }
 
-.control-group {
+.variation-top-bottom .title-section h2 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.variation-top-bottom .p2-info-box {
     display: flex;
-    flex-direction: column;
+    gap: 0.8rem;
+    align-items: center;
+    font-size: 0.8rem;
+    border-left: 1px solid rgba(0, 240, 255, 0.2);
+    padding-left: 1rem;
+}
+
+.variation-top-bottom .p2-info-box h3 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--colour-05);
+}
+
+.variation-top-bottom .p2-info-box p {
+    margin: 0;
+}
+
+.variation-top-bottom .control-group {
+    flex-direction: row;
+    align-items: center;
     gap: 0.5rem;
 }
 
@@ -114,11 +145,11 @@ select, input[type="range"] {
     overflow: hidden;
     background-color: var(--colour-01);
 
-    /* 12 vertical grid lines (11 steps) across X, 16 horizontal lines (15 steps) across Y */
+    /* 16 across and 12 vertical */
     background-image:
-            linear-gradient(to right, rgba(0, 240, 255, 0.2) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(0, 255, 136, 0.15) 1px, transparent 1px);
-    background-size: calc(100% / 11) calc(100% / 15);
+            linear-gradient(to right, rgba(0, 255, 136, 0.15) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 240, 255, 0.2) 1px, transparent 1px);
+    background-size: calc(100% / 15) calc(100% / 11);
     box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
 }
 
@@ -126,8 +157,8 @@ select, input[type="range"] {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 3px;
+    width: 3px;
+    height: 100%;
     background-color: var(--colour-05);
     box-shadow: var(--glow-green), 0 0 20px #00ff88;
     z-index: 10;
