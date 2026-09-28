@@ -1,29 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@400;600;700&display=swap');
 
-/*this is where we're storing our custom variables*/
+
 :root {
-    --colour-01: white;
-    --colour-02: black;
-    --colour-03: lightgrey;
-    --colour-04: #424242;
-    --colour-05: #154853;
-    --border: 0.25rem double var(--colour-03);
-    --button-border: 1rem double var(--colour-05);
+    --bg-dark: #070d10;
+    --bg-panel: #0d181c;
+    --colour-01: #070d10;
+    --colour-02: #a3f7ff;
+    --colour-03: rgba(0, 240, 255, 0.15);
+    --colour-04: #00f0ff;
+    --colour-05: #00ff88;
+
+    --glow-cyan: 0 0 12px rgba(0, 240, 255, 0.6);
+    --glow-green: 0 0 12px rgba(0, 255, 136, 0.8);
+    --border-tech: 1px solid rgba(0, 240, 255, 0.3);
+    --button-border: 1px solid var(--colour-05);
 }
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
     :root {
-        --colour-01: black;
-        --colour-02: white;
-        --colour-03: #424242;
-        --colour-04: lightgrey;
-        --colour-05: #42bd95;
+        --bg-dark: #070d10;
+        --bg-panel: #0d181c;
+        --colour-01: #070d10;
+        --colour-02: #a3f7ff;
+        --colour-03: rgba(0, 240, 255, 0.2);
+        --colour-04: #00f0ff;
+        --colour-05: #00ff88;
     }
 }
 
 body {
-    font-family: "IBM Plex Serif", serif;
-    background-color: var(--colour-01);
+    font-family: 'Space Grotesk', 'IBM Plex Serif', sans-serif;
+    background-color: var(--bg-dark);
     color: var(--colour-02);
     margin: 0;
     height: 100vh;
@@ -31,40 +38,50 @@ body {
     flex-direction: column;
     overflow: hidden;
     user-select: none;
+    background-image: radial-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 0);
+    background-size: 4px 4px;
 }
 
 header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 1.5rem;
-    border-bottom: var(--border);
+    padding: 0.75rem 1.5rem;
+    background-color: rgba(13, 24, 28, 0.8);
+    border-bottom: 1px solid var(--colour-04);
+    box-shadow: 0 2px 15px rgba(0, 240, 255, 0.2);
 }
 
 header h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    color: var(--colour-04);
+    text-shadow: var(--glow-cyan);
+    text-transform: uppercase;
 }
 
 /*2 column split container: Player 1 Left (1fr) | Stave Right (2fr)*/
 .app-container {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 300px 1fr;
     flex: 1;
     height: calc(100vh - 50px);
 }
-
 /*controls and panel layout*/
 .panel {
+    background-color: var(--bg-panel);
     padding: 1.25rem;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+    border-right: var(--border-tech);
 }
 
 .player-left {
-    border-right: var(--border);
+    box-shadow: inset -5px 0 15px rgba(0, 0, 0, 0.5);
 }
 
 .control-group {
@@ -74,16 +91,21 @@ header h1 {
 }
 
 label {
-    font-size: 0.9rem;
-    font-weight: 500;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--colour-05);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 select, input[type="range"] {
-    background-color: var(--colour-01);
-    color: var(--colour-02);
-    border: 1px solid var(--colour-03);
-    padding: 0.4rem;
-    font-family: inherit;
+    background-color: #04080a;
+    color: var(--colour-04);
+    border: 1px solid var(--colour-04);
+    padding: 0.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    outline: none;
+    box-shadow: inset 0 0 5px rgba(0, 240, 255, 0.2);
 }
 
 /*stave area*/
@@ -94,9 +116,10 @@ select, input[type="range"] {
 
     /* 12 vertical grid lines (11 steps) across X, 16 horizontal lines (15 steps) across Y */
     background-image:
-            linear-gradient(to right, var(--colour-03) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--colour-03) 1px, transparent 1px);
+            linear-gradient(to right, rgba(0, 240, 255, 0.2) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0, 255, 136, 0.15) 1px, transparent 1px);
     background-size: calc(100% / 11) calc(100% / 15);
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
 }
 
 #playhead {
@@ -104,50 +127,88 @@ select, input[type="range"] {
     top: 0;
     left: 0;
     width: 100%;
-    height: 4px;
+    height: 3px;
     background-color: var(--colour-05);
+    box-shadow: var(--glow-green), 0 0 20px #00ff88;
+    z-index: 10;
 }
 
 /*notes*/
 .note-ball {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     position: absolute;
-    background-color: var(--colour-05);
-    border: 2px solid var(--colour-02);
+    background: radial-gradient(circle, #00f0ff 0%, #005566 100%);
+    border: 1px solid var(--colour-04);
+    box-shadow: var(--glow-cyan);
     transform: translate(-50%, -50%);
-    transition: transform 0.1s ease;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    cursor: pointer;
+}
+
+.note-ball::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px #ffffff;
 }
 
 /*Player 2 active selected state*/
 .note-ball.active-selected {
     background-color: var(--colour-05);
-    border: 2px solid var(--colour-01);
+    border: 2px solid #ffffff;
     box-shadow: 0 0 10px var(--colour-05);
     z-index: 5;
 }
 
+.note-ball.active-selected::after {
+    background-color: #00ff88;
+    box-shadow: 0 0 8px #00ff88;
+}
+
 /*buttons andd ialog*/
 button {
-    background-color: var(--colour-01);
-    color: var(--colour-02);
+    background-color: #081317;
+    color: var(--colour-05);
     padding: 0.75rem 1rem;
-    border: var(--button-border);
-    font-family: inherit;
+    border: 1px solid var(--colour-05);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
     cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background-color: var(--colour-05);
+    color: #000000;
+    box-shadow: var(--glow-green);
 }
 
 #playPauseBtn {
-    padding: 0.4rem 1.2rem;
-    font-size: 1rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.95rem;
     font-weight: bold;
-    cursor: pointer;
+    border: 1px solid var(--colour-04);
+    color: var(--colour-04);
+}
+
+#playPauseBtn:hover {
+    background-color: var(--colour-04);
+    color: #000000;
+    box-shadow: var(--glow-cyan);
 }
 
 button:active {
-    background-color: var(--colour-05);
-    color: var(--colour-01);
+    transform: scale(0.98);
 }
 
 dialog[open] {
@@ -159,6 +220,11 @@ dialog[open] {
     flex-direction: column;
     gap: 1rem;
     border: var(--border);
+}
+
+dialog::backdrop {
+    background: rgba(3, 8, 10, 0.85);
+    backdrop-filter: blur(4px);
 }
 
 #key-test {
