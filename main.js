@@ -83,12 +83,15 @@ function createBall(xPercent, yPercent) {
     const yStep = Math.max(0, Math.min(Math.round(yPercent * (pitch_steps - 1)), pitch_steps - 1));
 
     //storing ball coordinates as ratios (0.0 to 1.0)
+    const durationBeats = Math.floor(Math.random() * 4) + 1;
+
     const noteObj = {
         element: ballElement,
         xStep: xStep, // Integer 0 to 11 (Exact pitch offset)
         yStep: yStep, // Integer 0 to 15 (Exact time beat)
         xRatio: xStep / (time_steps - 1), // Exact decimal ratio for CSS positioning
         yRatio: yStep / (pitch_steps - 1),
+        durationBeats: durationBeats,
         triggered: false
     };
 
@@ -100,7 +103,7 @@ function createBall(xPercent, yPercent) {
     selectNoteForP2(notes.length - 1);
 
     //play a preview note on creation
-    playPreviewSound(pitch_steps - 1 - noteObj.yStep);
+    //playPreviewSound(pitch_steps - 1 - noteObj.yStep);
 
     ballElement.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -116,6 +119,9 @@ function createBall(xPercent, yPercent) {
 function updateBallDOMPosition(noteObj) {
     noteObj.element.style.left = `${noteObj.xRatio * 100}%`;
     noteObj.element.style.top = `${noteObj.yRatio * 100}%`;
+
+    const stepWidthPercent = (1 / (time_steps - 1)) * 100;
+    noteObj.element.style.width = `calc(${noteObj.durationBeats * stepWidthPercent}% + 10px)`;
 }
 
 //calculate sound frequency using user 2 octave choice and ball x position
@@ -131,11 +137,13 @@ function calculateFrequency(xStep, octave) {
 }
 
 //Plays a short pitch preview sound based on horizontal position.
-function playPreviewSound(xStep) {
+function playPreviewSound(xStep, durationBeats = 1) {
     const pitchOffsetSlider = document.getElementById('pitchOffset');
     const baseOctave = pitchOffsetSlider ? parseInt(pitchOffsetSlider.value, 10) : 3;
     const previewFreq = calculateFrequency(xStep, baseOctave);
-    synth.triggerAttackRelease(previewFreq, "16n");
+
+    const durationNotation = `${durationBeats * 0.25}s`; // <-- ADDED
+    synth.triggerAttackRelease(previewFreq, durationNotation);
 }
 
 // Spawn button event listener
@@ -152,7 +160,7 @@ function selectNoteForP2(index) {
         activeP2Index = index;
         notes[activeP2Index].element.classList.add('active-selected');
         if (p2Status) {
-            p2Status.textContent = `Note #${activeP2Index + 1} of ${notes.length}`;
+            p2Status.textContent = `Note #${activeP2Index + 1} (${notes[activeP2Index].durationBeats} beats)`;
         }
     } else {
         activeP2Index = -1;
@@ -238,7 +246,7 @@ window.addEventListener('keydown', (e) => {
 
         if (moved) {
             updateBallDOMPosition(activeNote);
-            playPreviewSound(pitch_steps - 1 - activeNote.yStep);
+            playPreviewSound(pitch_steps - 1 - activeNote.yStep, 1);
         }
     }
 });
@@ -310,12 +318,13 @@ function animate() {
                     //calculate pitch and trigger sound
                     const actualPitchStep = pitch_steps - 1 - note.yStep;
                     const notePitchHz = calculateFrequency(actualPitchStep, baseOctave);
-                    synth.triggerAttackRelease(notePitchHz, "8n");
+                    const durationTime = `${note.durationBeats * 0.25}s`;
+                    synth.triggerAttackRelease(notePitchHz, durationTime);
 
                     //visual feedback animation on note hit
-                    note.element.style.transform = 'translate(-50%, -50%) scale(1.6)';
+                    note.element.style.transform = 'translate(0, -50%) scale(1.15)';
                     setTimeout(() => {
-                        note.element.style.transform = 'translate(-50%, -50%) scale(1.0)';
+                        note.element.style.transform = 'translate(0, -50%) scale(1.0)';
                     }, 150);
 
                 } catch (err) {
